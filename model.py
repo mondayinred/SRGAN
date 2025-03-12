@@ -5,10 +5,10 @@ import config
 
 class ResidualBlock(nn.Module):
     def __init__(self, conv_in_channels, conv_out_channels, conv_kernel_size, conv_stride):
-        super.__init__(self)
+        super().__init__()
         self.conv1 = nn.Conv2d(in_channels=conv_in_channels, out_channels=conv_out_channels, kernel_size=conv_kernel_size, stride=conv_stride)
         self.conv2 = nn.Conv2d(in_channels=conv_out_channels, out_channels=conv_out_channels, kernel_size=conv_kernel_size, stride=conv_stride)
-        self.batch_norm = nn.BatchNorm2d()
+        self.batch_norm = nn.BatchNorm2d(num_features=conv_out_channels)
         self.prelu = nn.PReLU()
         
     def forward(self, x0):
@@ -23,7 +23,7 @@ class ResidualBlock(nn.Module):
 
 class SRGAN_GEN(nn.Module):
     def __init__(self):
-        super(self).__init__()
+        super().__init__()
         self.conv1 = nn.Conv2d(in_channels=3, out_channels=64, kernel_size=9, stride=1)
         self.prelu1 = nn.PReLU()
         
@@ -33,19 +33,19 @@ class SRGAN_GEN(nn.Module):
         ])
         
         self.conv2 = nn.Conv2d(in_channels=64, out_channels=64, kernel_size=3, stride=1)
-        self.batch_norm = nn.BatchNorm2d() # batch norm한 다음에 skip-connection해야됨  
+        self.batch_norm = nn.BatchNorm2d(num_features=64) # batch norm한 다음에 skip-connection해야됨  
         
-        self.upsample_block1 = nn.Sequential([
+        self.upsample_block1 = nn.Sequential(
             nn.Conv2d(in_channels=64, out_channels=256, kernel_size=3, stride=1),
             nn.PixelShuffle(upscale_factor=2),
             nn.PReLU()
-        ])
+        )
         
-        self.upsample_block2 = nn.Sequential([
+        self.upsample_block2 = nn.Sequential(
             nn.Conv2d(in_channels=64, out_channels=256, kernel_size=3, stride=1),
             nn.PixelShuffle(upscale_factor=2),
             nn.PReLU()
-        ])
+        )
         
         self.conv3 = nn.Conv2d(in_channels=256, out_channels=3, kernel_size=9, stride=1)
         
@@ -69,57 +69,58 @@ class SRGAN_GEN(nn.Module):
 
 class SRGAN_DISC(nn.Module):
     def __init__(self):
+        super().__init__()
         self.conv1 = nn.Conv2d(in_channels=3, out_channels=64, kernel_size=3, stride=1)
         self.lrelu1 = nn.LeakyReLU(negative_slope=0.2)
         
-        self.conv_block1 = nn.Sequential([
+        self.conv_block1 = nn.Sequential(
             nn.Conv2d(in_channels=64, out_channels=64, kernel_size=3, stride=2),
-            nn.BatchNorm2d(),
+            nn.BatchNorm2d(64),
             nn.LeakyReLU(negative_slope=0.2)
-        ])
+        )
         
-        self.conv_block2 = nn.Sequential([
+        self.conv_block2 = nn.Sequential(
             nn.Conv2d(in_channels=64, out_channels=128, kernel_size=3, stride=1),
-            nn.BatchNorm2d(),
+            nn.BatchNorm2d(128),
             nn.LeakyReLU(negative_slope=0.2)
-        ])
+        )
         
-        self.conv_block3 = nn.Sequential([
+        self.conv_block3 = nn.Sequential(
             nn.Conv2d(in_channels=128, out_channels=128, kernel_size=3, stride=2),
-            nn.BatchNorm2d(),
+            nn.BatchNorm2d(128),
             nn.LeakyReLU(negative_slope=0.2)
-        ])
+        )
         
-        self.conv_block4 = nn.Sequential([
+        self.conv_block4 = nn.Sequential(
             nn.Conv2d(in_channels=128, out_channels=256, kernel_size=3, stride=1),
-            nn.BatchNorm2d(),
+            nn.BatchNorm2d(256),
             nn.LeakyReLU(negative_slope=0.2)
-        ])
+        )
         
-        self.conv_block5 = nn.Sequential([
+        self.conv_block5 = nn.Sequential(
             nn.Conv2d(in_channels=256, out_channels=256, kernel_size=3, stride=2),
-            nn.BatchNorm2d(),
+            nn.BatchNorm2d(256),
             nn.LeakyReLU(negative_slope=0.2)
-        ])
+        )
         
-        self.conv_block6 = nn.Sequential([
+        self.conv_block6 = nn.Sequential(
             nn.Conv2d(in_channels=256, out_channels=512, kernel_size=3, stride=1),
-            nn.BatchNorm2d(),
+            nn.BatchNorm2d(512),
             nn.LeakyReLU(negative_slope=0.2)
-        ])
+        )
         
-        self.conv_block7 = nn.Sequential([
+        self.conv_block7 = nn.Sequential(
             nn.Conv2d(in_channels=512, out_channels=512, kernel_size=3, stride=2),
-            nn.BatchNorm2d(),
+            nn.BatchNorm2d(512),
             nn.LeakyReLU(negative_slope=0.2)
-        ])
+        )
         
-        self.ffn = nn.Sequential([
+        self.ffn = nn.Sequential(
             nn.Linear(in_features=512, out_features=1024),
             nn.LeakyReLU(negative_slope=0.2),
             nn.Linear(in_features=1024, out_features=1),
             nn.Sigmoid()
-        ])
+        )
         
     def forward(self, x0):
         x1 = self.conv1(x0)

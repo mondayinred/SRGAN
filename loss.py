@@ -5,7 +5,7 @@ from torchvision.models.vgg import vgg19
 
 class ContentLossMSE(nn.Module):
     def __init__(self):
-        super(self).__init__()
+        super().__init__()
         self.mse_loss = nn.MSELoss()
         
     def forward(self, generated_fake_images, target_images):
@@ -15,7 +15,7 @@ class ContentLossMSE(nn.Module):
 
 class ContentLossVGG(nn.Module):
     def __init__(self, feature_map_block_idx=4): # VGG 5, 4
-        super(self).__init__()
+        super().__init__()
         
         self.pretrained_vgg19_layers = nn.ModuleList([nn.Sequential()])
         self.mse_loss = nn.MSELoss()
@@ -34,7 +34,7 @@ class ContentLossVGG(nn.Module):
                 if conv_block_idx == feature_map_block_idx:
                     break
                 conv_block_idx += 1
-                self.blocks.append(nn.Sequential())
+                self.pretrained_vgg19_layers.append(nn.Sequential())
             
             # 사전학습 레이어들 넣기
             self.pretrained_vgg19_layers[-1].add_module(str(idx), layer)
@@ -49,7 +49,7 @@ class ContentLossVGG(nn.Module):
     
 class AdversarialLoss(nn.Module):
     def __init__(self):
-        super(self).__init__()
+        super().__init__()
         
     def forward(self, generated_and_discriminated_images):
         # 모든 training samples들에 대해 더하여 (-) 붙임
@@ -59,7 +59,7 @@ class AdversarialLoss(nn.Module):
     
 class PerceptualLoss(nn.Module):
     def __init__(self):
-        super(self).__init__()
+        super().__init__()
         self.content_loss = ContentLossVGG(4) # ContentLossVGG 또는 ContentLossMSE 선택. 4는 VGG19 4번째 컨볼루션 블럭 출력, 5번째 풀링레이어 이전의 출력
         self.adversarial_loss = AdversarialLoss()
         

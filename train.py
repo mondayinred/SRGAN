@@ -14,8 +14,8 @@ from data import UcsrTrainValidDataset, UcsrTestDataset
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 model_save_path = '/home/kkm/work/graduate/SRGAN/model_parameters'
-train_path = "/home/lab/Datasets/UCSR_Datasets/Train"
-test_path = "/home/lab/Datasets/UCSR_Datasets/Test"
+train_path = "/home/lab/Datasets/UCSR_Datasets/Test/BSD100/LR_x4"
+valid_path = "/home/lab/Datasets/UCSR_Datasets/Test/BSD100/HR"
 
 if __name__ == "__main__":
     # 데이터 가져오기
@@ -26,12 +26,12 @@ if __name__ == "__main__":
         transforms.ToTensor()      
     ])
     
-    train_test = UcsrTrainValidDataset(train_path, transform_train)
+    train_test = UcsrTrainValidDataset(train_path, transform_train) # 
     train_data = train_test.get_train()
     valid_data = train_test.get_valid()
     
-    train_loader = DataLoader(train_data, batch_size=train_config['batch_size'])
-    valid_loader = DataLoader(valid_data, batch_size=train_config['batch_size'])
+    train_loader = DataLoader(train_data, batch_size=train_config['batch_size'], shuffle=True)
+    valid_loader = DataLoader(valid_data, batch_size=train_config['batch_size'],  shuffle=False)
     
     # 모델 및 옵티마이저, 손실함수
     generator = SRGAN_GEN().to(device)
@@ -52,6 +52,7 @@ if __name__ == "__main__":
         epoch_train_psnr = 0
         epoch_train_ssim = 0
         for input_train, target_train in tqdm(train_loader):
+            print(f'input_train type: {type(input_train)}, target_train type: {type(target_train)}')
             generator.train()
             discriminator.train()
             
@@ -106,19 +107,4 @@ if __name__ == "__main__":
         if (epoch % train_config['saving_epoch_period'] == 0):
             torch.save(generator.state_dict(), os.path.join(model_save_path, f'gen_epoch{epoch}'))
             torch.save(discriminator.state_dict(), os.path.join(model_save_path, f'disc_epoch{epoch}'))
-            
-            
-            
-        
-        
-            
-            
-
-            
-            
-    
-    
-    
-    
-    
     

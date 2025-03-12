@@ -13,17 +13,14 @@ train_config = {
     'learning_rate' : 0.0001,
     'saving_epoch_period' : 5,
     
-    'preprocess_hr' : transforms.Compose([
-        transforms.ToTensor(),
-        transforms.Normalize(means=[0.5, 0.5], std=[0.5]), # [-1, 1]로 정규화
-        transforms.GaussianBlur(kernel_size=5), # 가우시안 필터 적용
-        transforms.Resize((input_config['input_size'][0] / input_config['sampling_factor'],  input_config['input_size'][1] / input_config['sampling_factor'])), # sampling_factor만큼 downsampling
-    ]),
+    # 'preprocess_hr' : transforms.Compose([
+    #     transforms.ToTensor(),
+    #     transforms.Normalize(mean=[0.5, 0.5], std=[0.5]), # [-1, 1]로 정규화
+    #     transforms.GaussianBlur(kernel_size=5), # 가우시안 필터 적용
+    #     transforms.Resize((input_config['input_size'][0] / input_config['sampling_factor'],  input_config['input_size'][1] / input_config['sampling_factor'])), # sampling_factor만큼 downsampling
+    # ]),
     
-    'preprocess_lr' : transforms.Compose([
-        transforms.ToTensor()
-    ]),
-    
-    
-        
+    # 'preprocess_lr' : transforms.Compose([
+    #     transforms.ToTensor()
+    # ]),   
 }

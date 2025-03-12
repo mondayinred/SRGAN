@@ -4,19 +4,19 @@
 from torch.utils.data import Dataset
 from torchvision import datasets, transforms
 from torch.utils.data import random_split
-
+import os
 
 
 class UcsrTrainDataset(Dataset):
-    def __init__(self, data):
-        self.train_data = data
+    def __init__(self, datapath, transform):
+        lr_list = [os.path.join(datapath, f) for f in os.listdir(datapath)]
+        for lr in 
     
     def __len__(self):
-        train_len = len(self.train_data)
-        return train_len
+        return len(self.train_data)
     
     def __getitem__(self, index):
-        return self.train_data[index]
+        return self.train_data[index] # 반환형은 torch.tensor
     
 class UcsrValidDataset(Dataset):
     def __init__(self, data):
@@ -40,7 +40,7 @@ class UcsrTrainValidDataset:
     def get_train(self):
         return self.train_data
     
-    def get_test(self):
+    def get_valid(self):
         return self.valid_data
         
 class UcsrTestDataset(Dataset):
