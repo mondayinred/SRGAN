@@ -23,8 +23,7 @@ class UcsrValidDataset(Dataset):
         self.valid_data = data
     
     def __len__(self):
-        valid_len = len(self.valid_data)
-        return valid_len
+        return len(self.valid_data)
     
     def __getitem__(self, index):
         return self.valid_data[index]
@@ -45,4 +44,11 @@ class UcsrTrainValidDataset:
         return self.valid_data
         
 class UcsrTestDataset(Dataset):
-    def
+    def __init__(self, datapath, transform):
+        self.test_data = datasets.ImageFolder(root=datapath, transform=transform)
+        
+    def __len__(self):
+        return len(self.test_data)
+    
+    def __getitem__(self, index):
+        return self.test_data[index]
