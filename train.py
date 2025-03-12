@@ -25,10 +25,13 @@ if __name__ == "__main__":
     transform_test = transforms.Compose([
         transforms.ToTensor()      
     ])
+    
     train_test = UcsrTrainValidDataset(train_path, transform_train)
     train_data = train_test.get_train()
     valid_data = train_test.get_valid()
-    test_data = UcsrTestDataset(test_path, transform_test)
+    
+    train_loader = DataLoader(train_data, batch_size=train_config['batch_size'])
+    valid_loader = DataLoader(valid_data, batch_size=train_config['batch_size'])
     
     # 모델 및 옵티마이저, 손실함수
     generator = SRGAN_GEN().to(device)
@@ -90,14 +93,14 @@ if __name__ == "__main__":
         avg_val_ssim_gen = 0
         epoch_val_psnr_gen = 0
         epoch_val_ssim_gen = 0
-        for input_val, target_val in tqdm(val_loader):
+        for input_val, target_val in tqdm(valid_loader):
             generator.eval()
             generated_image = generator(input_val)
             epoch_val_psnr_gen += psnr_srgan(input_val, target_val)
             epoch_val_ssim_gen += ssim_srgan(input_val, target_val)
         
-        avg_val_psnr_gen = epoch_val_psnr_gen / len(val_loader.dataset)
-        avg_val_ssim_gen = epoch_val_ssim_gen / len(val_loader.dataset)
+        avg_val_psnr_gen = epoch_val_psnr_gen / len(valid_loader.dataset)
+        avg_val_ssim_gen = epoch_val_ssim_gen / len(valid_loader.dataset)
         print(f'Validation PSNR: {avg_val_psnr_gen}, SSIM: {avg_val_ssim_gen}')
         
         if (epoch % train_config['saving_epoch_period'] == 0):
