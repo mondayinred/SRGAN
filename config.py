@@ -27,5 +27,5 @@ train_config = {
     'train_hr_path' : "/home/lab/Datasets/UCSR_Datasets/Test/BSD100/HR",
     'train_ratio' : 0.8,
     'crop_size' : (96, 96),
-    'model_save_path' : '/home/kkm/work/graduate/SRGAN/model_parameters'
+    'model_save_path' : '/home/lab/work/SRGAN/model_parameters'
 }
