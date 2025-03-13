@@ -1,6 +1,7 @@
 import torch.nn.functional as F
 import torchvision.transforms as transforms
 from PIL import Image
+import torch
 
 input_config = {
     'input_size' : (),
@@ -12,6 +13,7 @@ train_config = {
     'batch_size' : 16,
     'learning_rate' : 0.0001,
     'saving_epoch_period' : 5,
+    'device' : torch.device("cuda" if torch.cuda.is_available() else "cpu"),
     
     # 'preprocess_hr' : transforms.Compose([
     #     transforms.ToTensor(),
@@ -20,7 +22,9 @@ train_config = {
     #     transforms.Resize((input_config['input_size'][0] / input_config['sampling_factor'],  input_config['input_size'][1] / input_config['sampling_factor'])), # sampling_factor만큼 downsampling
     # ]),
     
-    # 'preprocess_lr' : transforms.Compose([
-    #     transforms.ToTensor()
-    # ]),   
+    'train_lr_path' : "/home/lab/Datasets/UCSR_Datasets/Test/BSD100/LR_x4",
+    'train_hr_path' : "/home/lab/Datasets/UCSR_Datasets/Test/BSD100/HR",
+    'train_ratio' : 0.8,
+    'crop_size' : (96, 96),
+    'model_save_path' : '/home/kkm/work/graduate/SRGAN/model_parameters'
 }

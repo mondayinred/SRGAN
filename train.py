@@ -12,21 +12,11 @@ from loss import PerceptualLoss, AdversarialLoss
 from utils import psnr_srgan, ssim_srgan
 from data import UcsrTrainValidDataset, UcsrTestDataset
 
-device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-model_save_path = '/home/kkm/work/graduate/SRGAN/model_parameters'
-train_path = "/home/lab/Datasets/UCSR_Datasets/Test/BSD100/LR_x4"
-valid_path = "/home/lab/Datasets/UCSR_Datasets/Test/BSD100/HR"
 
 if __name__ == "__main__":
     # 데이터 가져오기
-    transform_train = transforms.Compose([
-        transforms.ToTensor()     
-    ])
-    transform_test = transforms.Compose([
-        transforms.ToTensor()      
-    ])
     
-    train_test = UcsrTrainValidDataset(train_path, transform_train) # 
+    train_test = UcsrTrainValidDataset(train_config['train_lr_path'], train_config['train_hr_path'], train_config['transform_train']) # 
     train_data = train_test.get_train()
     valid_data = train_test.get_valid()
     
@@ -34,8 +24,8 @@ if __name__ == "__main__":
     valid_loader = DataLoader(valid_data, batch_size=train_config['batch_size'],  shuffle=False)
     
     # 모델 및 옵티마이저, 손실함수
-    generator = SRGAN_GEN().to(device)
-    discriminator = SRGAN_DISC().to(device)
+    generator = SRGAN_GEN().to(train_config['device'])
+    discriminator = SRGAN_DISC().to(train_config['device'])
     optimizer_gen = optim.Adam(generator.parameters(), lr=train_config['learning_rate'])
     optimizer_disc = optim.Adam(discriminator.parameters(), lr=train_config['learning_rate'])
     criterion_gen = PerceptualLoss()
