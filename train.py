@@ -10,13 +10,13 @@ from config import train_config, input_config
 from model import SRGAN_GEN, SRGAN_DISC
 from loss import PerceptualLoss, AdversarialLoss
 from utils import psnr_srgan, ssim_srgan
-from data import UcsrTrainValidDataset, UcsrTestDataset
+from data import UcsrTrainValidDataset
 
 
 if __name__ == "__main__":
     # 데이터 가져오기
     
-    train_test = UcsrTrainValidDataset(train_config['train_lr_path'], train_config['train_hr_path'], train_config['transform_train']) # 
+    train_test = UcsrTrainValidDataset(train_config['train_lr_path'], train_config['train_hr_path'])
     train_data = train_test.get_train()
     valid_data = train_test.get_valid()
     
@@ -28,8 +28,8 @@ if __name__ == "__main__":
     discriminator = SRGAN_DISC().to(train_config['device'])
     optimizer_gen = optim.Adam(generator.parameters(), lr=train_config['learning_rate'])
     optimizer_disc = optim.Adam(discriminator.parameters(), lr=train_config['learning_rate'])
-    criterion_gen = PerceptualLoss()
-    criterion_disc = AdversarialLoss()
+    criterion_gen = PerceptualLoss().to(train_config['device'])
+    criterion_disc = AdversarialLoss().to(train_config['device'])
     
     for epoch in range(1, train_config['num_epochs']):
         #### train ####
@@ -42,12 +42,14 @@ if __name__ == "__main__":
         epoch_train_psnr = 0
         epoch_train_ssim = 0
         for input_train, target_train in tqdm(train_loader):
-            print(f'input_train type: {type(input_train)}, target_train type: {type(target_train)}')
+            print(f'input_train shape: {input_train.shape}, target_train type: {target_train.shape}')
             generator.train()
             discriminator.train()
+            input_train = input_train.to(train_config['device'])
+            target_train = target_train.to(train_config['device'])
             
             # generator 업데이트    
-            generated_image = generator(input_train)
+            generated_image = generator(input_train).to(train_config['device'])
             discriminated_output = discriminator(generated_image)
         
             optimizer_gen.zero_grad()

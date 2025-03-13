@@ -2,11 +2,13 @@ import torch
 from torch import nn
 from torchvision.models.vgg import vgg19
 
+from config import train_config
+
 
 class ContentLossMSE(nn.Module):
     def __init__(self):
         super().__init__()
-        self.mse_loss = nn.MSELoss()
+        self.mse_loss = nn.MSELoss().to(train_config['device'])
         
     def forward(self, generated_fake_images, target_images):
         return self.mse_loss(generated_fake_images, target_images)
@@ -18,7 +20,7 @@ class ContentLossVGG(nn.Module):
         super().__init__()
         
         self.pretrained_vgg19_layers = nn.ModuleList([nn.Sequential()])
-        self.mse_loss = nn.MSELoss()
+        self.mse_loss = nn.MSELoss().to(train_config['device'])
         
         # vgg19의 사전학습된 레이어들 가져오기
         vgg = vgg19(pretrained=True)
@@ -41,9 +43,15 @@ class ContentLossVGG(nn.Module):
             
         for param in self.pretrained_vgg19_layers.parameters():
             param.requires_grad = False
+            
+        self.pretrained_vgg19_layers = self.pretrained_vgg19_layers.to(train_config['device'])
     
     def forward(self, generated_fake_images, target_images):
-        return self.mse_loss(self.pretrained_vgg19_layers(generated_fake_images), self.pretrained_vgg19_layers(target_images))
+        for layer in self.pretrained_vgg19_layers:
+            generated_fake_images = layer(generated_fake_images).to(train_config['device'])
+            target_images = layer(target_images).to(train_config['device'])
+        
+        return self.mse_loss(generated_fake_images, target_images)
    
    
     
@@ -60,8 +68,8 @@ class AdversarialLoss(nn.Module):
 class PerceptualLoss(nn.Module):
     def __init__(self):
         super().__init__()
-        self.content_loss = ContentLossVGG(4) # ContentLossVGG 또는 ContentLossMSE 선택. 4는 VGG19 4번째 컨볼루션 블럭 출력, 5번째 풀링레이어 이전의 출력
-        self.adversarial_loss = AdversarialLoss()
+        self.content_loss = ContentLossVGG(4).to(train_config['device']) # ContentLossVGG 또는 ContentLossMSE 선택. 4는 VGG19 4번째 컨볼루션 블럭 출력, 5번째 풀링레이어 이전의 출력
+        self.adversarial_loss = AdversarialLoss().to(train_config['device'])
         
     def forward(self, generated_fake_images, generated_and_discriminated_images, target_images):
         '''

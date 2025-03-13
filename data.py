@@ -6,14 +6,17 @@
 from torch.utils.data import Dataset
 from torchvision import datasets, transforms
 from torch.utils.data import random_split
+import torch
+import torch.nn.functional as F
 import os
 import random
 from PIL import Image
+import numpy as np
 
 from config import train_config
 
 class UcsrTrainValidDataset:
-    def __init__(self, lr_images_path, hr_images_path, transform):
+    def __init__(self, lr_images_path, hr_images_path):
         lr_images_path_list = [os.path.join(lr_images_path, f) for f in os.listdir(lr_images_path)]
         hr_images_path_list = [os.path.join(hr_images_path, f) for f in os.listdir(hr_images_path)]
         
@@ -51,17 +54,27 @@ class UcsrTrainDataset(Dataset):
     
     def __getitem__(self, idx):
         lr_image = Image.open(self.train_lr_path_list[idx]).convert("RGB")
+        lr_tensor = torch.as_tensor(np.array(lr_image).astype('float')).permute(2, 0, 1) #### 억까 심하네.. transforms.ToTensor()대신 쓰기
+        # print(f'***{lr_tensor.shape}')
+        lr_tensor = lr_tensor.unsqueeze(0)
+        upscaled_lr_tensor = F.interpolate(lr_tensor, scale_factor=4, mode='bilinear', align_corners=False).squeeze(0)  # 4x upsampling
+        # # print(f'***{upscaled_lr_tensor.shape}')
+        
         hr_image = Image.open(self.train_hr_path_list[idx]).convert("RGB")
+        hr_tensor = torch.as_tensor(np.array(hr_image).astype('float')).permute(2, 0, 1)
+        # print(f'***{hr_tensor.shape}')
 
         # 동일한 랜덤 crop 좌표 얻기
-        i, j, h, w = transforms.RandomCrop.get_params(lr_image, output_size=train_config['crop_size'])
+        i, j, h, w = transforms.RandomCrop.get_params(upscaled_lr_tensor, output_size=train_config['crop_size'])
         
         # 같은 위치에서 crop 적용
-        lr_cropped = transforms.functional.crop(lr_image, i, j, h, w)
-        hr_cropped = transforms.functional.crop(hr_image, i, j, h, w)
+        lr_cropped = transforms.functional.crop(upscaled_lr_tensor, i, j, h, w)
+        hr_cropped = transforms.functional.crop(hr_tensor, i, j, h, w)
         
-        lr_cropped = transforms.ToTensor()(lr_cropped)
-        hr_cropped = transforms.ToTensor()(hr_cropped)
+        # lr_cropped의 크기를 1/4로 줄이기
+        lr_cropped = F.interpolate(lr_cropped.unsqueeze(0), scale_factor=0.25, mode='bilinear', align_corners=False).squeeze(0)
+        
+        # print(f'***lr_cropped: {type(lr_cropped)}, hr_cropped: {type(hr_cropped)}')
         
         return lr_cropped, hr_cropped
     

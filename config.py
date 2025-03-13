@@ -13,6 +13,7 @@ train_config = {
     'batch_size' : 16,
     'learning_rate' : 0.0001,
     'saving_epoch_period' : 5,
+    'num_of_res_blocks' : 16,
     'device' : torch.device("cuda" if torch.cuda.is_available() else "cpu"),
     
     # 'preprocess_hr' : transforms.Compose([
