@@ -88,7 +88,10 @@ if __name__ == "__main__":
         epoch_val_ssim_gen = 0
         for input_val, target_val in tqdm(valid_loader):
             generator.eval()
-            generated_image = generator(input_val)
+            input_val = input_val.to(train_config['device'])
+            input_val = target_val.to(train_config['device'])
+            
+            generated_image = generator(input_val).to(train_config['device'])
             epoch_val_psnr_gen += psnr_srgan(input_val, target_val)
             epoch_val_ssim_gen += ssim_srgan(input_val, target_val)
         
@@ -97,6 +100,6 @@ if __name__ == "__main__":
         print(f'Validation PSNR: {avg_val_psnr_gen}, SSIM: {avg_val_ssim_gen}')
         
         if (epoch % train_config['saving_epoch_period'] == 0):
-            torch.save(generator.state_dict(), os.path.join(model_save_path, f'gen_epoch{epoch}'))
-            torch.save(discriminator.state_dict(), os.path.join(model_save_path, f'disc_epoch{epoch}'))
+            torch.save(generator.state_dict(), os.path.join(train_config['model_save_path'], f'gen_epoch{epoch}'))
+            torch.save(discriminator.state_dict(), os.path.join(train_config['model_save_path'], f'disc_epoch{epoch}'))
     
