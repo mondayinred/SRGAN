@@ -45,6 +45,10 @@ class ContentLossVGG(nn.Module):
             param.requires_grad = False
             
         self.pretrained_vgg19_layers = self.pretrained_vgg19_layers.to(train_config['device'])
+        # print(f'******pretrained_vgg19_layers len: {len(self.pretrained_vgg19_layers)}')
+        # print(f'******pretrained_vgg19_layers 4th layer len: {len(self.pretrained_vgg19_layers[3])}')
+        # for layer in self.pretrained_vgg19_layers[3]:
+        #     print(f'*****layer: {layer}')
     
     def forward(self, generated_fake_images, target_images):
         for layer in self.pretrained_vgg19_layers:
@@ -61,14 +65,14 @@ class AdversarialLoss(nn.Module):
         
     def forward(self, generated_and_discriminated_images):
         # 모든 training samples들에 대해 더하여 (-) 붙임
-        return (-1) * torch.sum(torch.log(generated_and_discriminated_images), dim=0) # dim=0은 batch_size 차원이어야 함
+        return (-1.) * torch.sum(torch.log(generated_and_discriminated_images), dim=0) # dim=0은 batch_size 차원이어야 함
     
     
     
 class PerceptualLoss(nn.Module):
     def __init__(self):
         super().__init__()
-        self.content_loss = ContentLossVGG(4).to(train_config['device']) # ContentLossVGG 또는 ContentLossMSE 선택. 4는 VGG19 4번째 컨볼루션 블럭 출력, 5번째 풀링레이어 이전의 출력
+        self.content_loss = ContentLossVGG(4).to(train_config['device']) # ContentLossVGG 또는 ContentLossMSE 선택. 4는 "VGG19 4번째 컨볼루션 블럭 출력, 즉 5번째 풀링레이어 이전의 출력"
         self.adversarial_loss = AdversarialLoss().to(train_config['device'])
         
     def forward(self, generated_fake_images, generated_and_discriminated_images, target_images):
@@ -78,3 +82,14 @@ class PerceptualLoss(nn.Module):
             target_images: I_HR
         '''
         return self.content_loss(generated_fake_images, target_images) + 0.001 * self.adversarial_loss(generated_and_discriminated_images)
+    
+    
+class DiscriminatorLoss(nn.Module):
+    def __init__(self):
+        super().__init__()
+        self.bce_loss = nn.BCELoss()
+        
+    def forward(self, discriminated_fake, discriminated_real):
+        real_loss = self.bce_loss(discriminated_real, torch.ones_like(discriminated_real))  # 실제 이미지에 대한 손실
+        fake_loss = self.bce_loss(discriminated_fake, torch.zeros_like(discriminated_fake))  # 가짜 이미지에 대한 손실
+        return real_loss + fake_loss

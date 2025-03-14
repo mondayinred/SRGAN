@@ -8,7 +8,7 @@ import os
 
 from config import train_config, input_config
 from model import SRGAN_GEN, SRGAN_DISC
-from loss import PerceptualLoss, AdversarialLoss
+from loss import PerceptualLoss, DiscriminatorLoss
 from utils import psnr_srgan, ssim_srgan
 from data import UcsrTrainValidDataset
 
@@ -29,7 +29,7 @@ if __name__ == "__main__":
     optimizer_gen = optim.Adam(generator.parameters(), lr=train_config['learning_rate'])
     optimizer_disc = optim.Adam(discriminator.parameters(), lr=train_config['learning_rate'])
     criterion_gen = PerceptualLoss().to(train_config['device'])
-    criterion_disc = AdversarialLoss().to(train_config['device'])
+    criterion_disc = DiscriminatorLoss().to(train_config['device'])
     
     for epoch in range(1, train_config['num_epochs']):
         #### train ####
@@ -41,12 +41,15 @@ if __name__ == "__main__":
         epoch_train_loss_disc = 0
         epoch_train_psnr = 0
         epoch_train_ssim = 0
+        num_of_images = 0
+        
         for input_train, target_train in tqdm(train_loader):
             print(f'input_train shape: {input_train.shape}, target_train type: {target_train.shape}')
             generator.train()
             discriminator.train()
             input_train = input_train.to(train_config['device'])
             target_train = target_train.to(train_config['device'])
+            num_of_images += input_train.shape[0]
             
             # generator 업데이트    
             generated_image = generator(input_train).to(train_config['device'])
@@ -64,20 +67,22 @@ if __name__ == "__main__":
             
             # discriminator 업데이트
             generated_image = generator(input_train)
-            discriminated_output = discriminator(generated_image.detach())
+            discriminated_fake = discriminator(generated_image.detach())
+            discriminated_real = discriminator(target_train)
             
             optimizer_disc.zero_grad()
-            loss_disc = criterion_disc(discriminated_output)
+            loss_disc = criterion_disc(discriminated_fake, discriminated_real)
             loss_disc.backward()
             optimizer_disc.step()
             
             # discriminator loss 축적
             epoch_train_loss_disc += loss_disc.item()
-            
+
+        print(f'Total PSNR per batch: {epoch_train_psnr}')
         avg_train_loss_gen = epoch_train_loss_gen / len(train_loader.dataset)
         avg_train_loss_disc = epoch_train_loss_disc / len(train_loader.dataset)
-        avg_train_psnr = epoch_train_psnr / len(train_loader.dataset)
-        avg_train_ssim = epoch_train_ssim / len(train_loader.dataset)
+        avg_train_psnr = epoch_train_psnr / num_of_images
+        avg_train_ssim = epoch_train_ssim / num_of_images
         print(f'Epoch {epoch} / Generator Loss: {avg_train_loss_gen}, Discriminator Loss: {avg_train_loss_disc},\
             PSNR: {avg_train_psnr}, SSIM: {avg_train_ssim}')
             
@@ -86,14 +91,15 @@ if __name__ == "__main__":
         avg_val_ssim_gen = 0
         epoch_val_psnr_gen = 0
         epoch_val_ssim_gen = 0
+        generator.eval()
         for input_val, target_val in tqdm(valid_loader):
-            generator.eval()
+            print(f'input_valid shape: {input_val.shape}, target_valid type: {target_val.shape}')
             input_val = input_val.to(train_config['device'])
-            input_val = target_val.to(train_config['device'])
+            target_val = target_val.to(train_config['device'])
             
             generated_image = generator(input_val).to(train_config['device'])
-            epoch_val_psnr_gen += psnr_srgan(input_val, target_val)
-            epoch_val_ssim_gen += ssim_srgan(input_val, target_val)
+            epoch_val_psnr_gen += psnr_srgan(generated_image, target_val)
+            epoch_val_ssim_gen += ssim_srgan(generated_image, target_val)
         
         avg_val_psnr_gen = epoch_val_psnr_gen / len(valid_loader.dataset)
         avg_val_ssim_gen = epoch_val_ssim_gen / len(valid_loader.dataset)
