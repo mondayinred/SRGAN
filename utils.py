@@ -17,7 +17,7 @@ def psnr_srgan(input, target):
         
     input = input.cpu().detach().numpy()
     target = target.cpu().detach().numpy()
-    rmse = math.sqrt(np.mean((input - target) ** 2))
+    rmse = math.sqrt(np.mean((input - target) ** 2)) # np.mean()이 전체 배치 크기 모두에 대한 평균 PSNR를 계산
     max_pixel_val = 1.0
     if rmse <= 0:
         return 100

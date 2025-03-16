@@ -55,7 +55,7 @@ class ContentLossVGG(nn.Module):
             generated_fake_images = layer(generated_fake_images).to(train_config['device'])
             target_images = layer(target_images).to(train_config['device'])
         
-        return self.mse_loss(generated_fake_images, target_images)
+        return self.mse_loss(generated_fake_images / 12.75, target_images / 12.75)
    
    
     
@@ -65,6 +65,7 @@ class AdversarialLoss(nn.Module):
         
     def forward(self, generated_and_discriminated_images):
         # 모든 training samples들에 대해 더하여 (-) 붙임
+        print(f'****dimension: {generated_and_discriminated_images.shape}')
         return (-1.) * torch.sum(torch.log(generated_and_discriminated_images), dim=0) # dim=0은 batch_size 차원이어야 함
     
     

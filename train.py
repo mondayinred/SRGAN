@@ -43,13 +43,14 @@ if __name__ == "__main__":
         epoch_train_ssim = 0
         num_of_images = 0
         
+        count = 0
         for input_train, target_train in tqdm(train_loader):
+            count += 1
             print(f'input_train shape: {input_train.shape}, target_train type: {target_train.shape}')
             generator.train()
             discriminator.train()
             input_train = input_train.to(train_config['device'])
             target_train = target_train.to(train_config['device'])
-            num_of_images += input_train.shape[0]
             
             # generator 업데이트    
             generated_image = generator(input_train).to(train_config['device'])
@@ -62,7 +63,9 @@ if __name__ == "__main__":
             
             # generator loss, psnr, ssim 축적
             epoch_train_loss_gen += loss_gen.item()
-            epoch_train_psnr += psnr_srgan(generated_image, target_train)
+            temp_psnr = psnr_srgan(generated_image, target_train)
+            print(f'batch PSNR: {temp_psnr}')
+            epoch_train_psnr += temp_psnr
             epoch_train_ssim += ssim_srgan(generated_image, target_train)
             
             # discriminator 업데이트
@@ -81,8 +84,8 @@ if __name__ == "__main__":
         print(f'Total PSNR per batch: {epoch_train_psnr}')
         avg_train_loss_gen = epoch_train_loss_gen / len(train_loader.dataset)
         avg_train_loss_disc = epoch_train_loss_disc / len(train_loader.dataset)
-        avg_train_psnr = epoch_train_psnr / num_of_images
-        avg_train_ssim = epoch_train_ssim / num_of_images
+        avg_train_psnr = epoch_train_psnr / count
+        avg_train_ssim = epoch_train_ssim / count
         print(f'Epoch {epoch} / Generator Loss: {avg_train_loss_gen}, Discriminator Loss: {avg_train_loss_disc},\
             PSNR: {avg_train_psnr}, SSIM: {avg_train_ssim}')
             
@@ -92,7 +95,9 @@ if __name__ == "__main__":
         epoch_val_psnr_gen = 0
         epoch_val_ssim_gen = 0
         generator.eval()
+        count = 0
         for input_val, target_val in tqdm(valid_loader):
+            count += 1
             print(f'input_valid shape: {input_val.shape}, target_valid type: {target_val.shape}')
             input_val = input_val.to(train_config['device'])
             target_val = target_val.to(train_config['device'])
@@ -101,8 +106,8 @@ if __name__ == "__main__":
             epoch_val_psnr_gen += psnr_srgan(generated_image, target_val)
             epoch_val_ssim_gen += ssim_srgan(generated_image, target_val)
         
-        avg_val_psnr_gen = epoch_val_psnr_gen / len(valid_loader.dataset)
-        avg_val_ssim_gen = epoch_val_ssim_gen / len(valid_loader.dataset)
+        avg_val_psnr_gen = epoch_val_psnr_gen / count
+        avg_val_ssim_gen = epoch_val_ssim_gen / count
         print(f'Validation PSNR: {avg_val_psnr_gen}, SSIM: {avg_val_ssim_gen}')
         
         if (epoch % train_config['saving_epoch_period'] == 0):
