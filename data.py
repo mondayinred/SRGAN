@@ -61,7 +61,7 @@ class UcsrTrainDataset(Dataset):
         lr_tensor = torch.as_tensor(np.array(lr_image) / 255.0, dtype=torch.float32).permute(2, 0, 1) #### 억까 심하네.. transforms.ToTensor()대신 쓰기
         # print(f'***{lr_tensor.shape}')
         lr_tensor = lr_tensor.unsqueeze(0)
-        upscaled_lr_tensor = F.interpolate(lr_tensor, scale_factor=4, mode='bilinear', align_corners=False).squeeze(0)  # 4x upsampling
+        upscaled_lr_tensor = F.interpolate(lr_tensor, scale_factor=4, mode='bilinear', align_corners=True).squeeze(0)  # 4x upsampling
         # # print(f'***{upscaled_lr_tensor.shape}')
         
         hr_image = Image.open(self.train_hr_path_list[idx]).convert("RGB")
@@ -76,7 +76,7 @@ class UcsrTrainDataset(Dataset):
         hr_cropped = transforms.functional.crop(hr_tensor, i, j, h, w)
         
         # lr_cropped의 크기를 1/4로 줄이기
-        lr_cropped = F.interpolate(lr_cropped.unsqueeze(0), scale_factor=0.25, mode='bilinear', align_corners=False).squeeze(0)
+        lr_cropped = F.interpolate(lr_cropped.unsqueeze(0), scale_factor=0.25, mode='bilinear', align_corners=True).squeeze(0)
         
         # print(f'***lr_cropped: {lr_cropped.dtype}, hr_cropped: {hr_cropped.dtype}')
         
@@ -96,7 +96,7 @@ class UcsrValidDataset(Dataset):
         lr_tensor = torch.as_tensor(np.array(lr_image) / 255.0, dtype=torch.float32).permute(2, 0, 1) #### 억까 심하네.. transforms.ToTensor()대신 쓰기
         # print(f'***{lr_tensor.shape}')
         lr_tensor = lr_tensor.unsqueeze(0)
-        upscaled_lr_tensor = F.interpolate(lr_tensor, scale_factor=4, mode='bilinear', align_corners=False).squeeze(0)  # 4x upsampling
+        upscaled_lr_tensor = F.interpolate(lr_tensor, scale_factor=4, mode='bilinear', align_corners=True).squeeze(0)  # 4x upsampling
         # # print(f'***{upscaled_lr_tensor.shape}')
         
         hr_image = Image.open(self.valid_hr_path_list[idx]).convert("RGB")
@@ -111,10 +111,10 @@ class UcsrValidDataset(Dataset):
         hr_cropped = transforms.functional.crop(hr_tensor, i, j, h, w)
         
         # lr_cropped의 크기를 1/4로 줄이기
-        lr_cropped = F.interpolate(lr_cropped.unsqueeze(0), scale_factor=0.25, mode='bilinear', align_corners=False).squeeze(0)
+        lr_cropped = F.interpolate(lr_cropped.unsqueeze(0), scale_factor=0.25, mode='bilinear', align_corners=True).squeeze(0)
         
-        # print(f'***lr_cropped: {type(lr_cropped)}, hr_cropped: {type(hr_cropped)}')
-        # print(f'***lr_cropped: {lr_cropped.shape}, hr_cropped: {hr_cropped.shape}')
+       # print(f'***lr_cropped: {type(lr_cropped)}, hr_cropped: {type(hr_cropped)}')
+        #print(f'***lr_cropped: {lr_cropped.shape}, hr_cropped: {hr_cropped.shape}')
         
         return lr_cropped, hr_cropped
     

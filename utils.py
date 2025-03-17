@@ -7,9 +7,9 @@ import math
 from config import train_config
 
 def psnr_srgan(input, target):
-    print("Max value in input:", torch.max(input))
-    print("Max value in target:", torch.max(target))
-    print(f'shape: {input.shape}, {target.shape}')
+    # print("Max value in input:", torch.max(input))
+    # print("Max value in target:", torch.max(target))
+    #print(f'shape: {input.shape}, {target.shape}')
     assert torch.is_floating_point(input) and torch.is_floating_point(target), \
         "입력과 타겟은 부동 소수점 텐서여야 합니다."
     assert torch.max(input) <= 1.0 and torch.max(target) <= 1.0, \

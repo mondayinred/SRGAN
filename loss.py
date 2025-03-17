@@ -10,8 +10,8 @@ class ContentLossMSE(nn.Module):
         super().__init__()
         self.mse_loss = nn.MSELoss().to(train_config['device'])
         
-    def forward(self, generated_fake_images, target_images):
-        return self.mse_loss(generated_fake_images, target_images)
+    def forward(self, input_images, target_images):
+        return self.mse_loss(input_images, target_images)
 
 
 
@@ -65,8 +65,8 @@ class AdversarialLoss(nn.Module):
         
     def forward(self, generated_and_discriminated_images):
         # 모든 training samples들에 대해 더하여 (-) 붙임
-        print(f'****dimension: {generated_and_discriminated_images.shape}')
-        return (-1.) * torch.sum(torch.log(generated_and_discriminated_images), dim=0) # dim=0은 batch_size 차원이어야 함
+        # print(f'****dimension: {generated_and_discriminated_images.shape}')
+        return (-1.) * torch.mean(torch.log(generated_and_discriminated_images)) # dim=0은 batch_size 차원이어야 함
     
     
     
@@ -82,13 +82,16 @@ class PerceptualLoss(nn.Module):
             upscaled_and_discriminated_images: D(G(I_LR))
             target_images: I_HR
         '''
-        return self.content_loss(generated_fake_images, target_images) + 0.001 * self.adversarial_loss(generated_and_discriminated_images)
+        content_loss = self.content_loss(generated_fake_images, target_images)
+        adversairal_loss = self.adversarial_loss(generated_and_discriminated_images)
+        print(f'content_loss: {content_loss.shape}, adversarial_loss: {adversairal_loss.shape}')
+        return content_loss + 0.001 * adversairal_loss
     
     
 class DiscriminatorLoss(nn.Module):
     def __init__(self):
         super().__init__()
-        self.bce_loss = nn.BCELoss()
+        self.bce_loss = nn.BCELoss().to(train_config['device'])
         
     def forward(self, discriminated_fake, discriminated_real):
         real_loss = self.bce_loss(discriminated_real, torch.ones_like(discriminated_real))  # 실제 이미지에 대한 손실

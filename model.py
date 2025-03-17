@@ -70,7 +70,7 @@ class SRGAN_GEN(nn.Module):
         
         # print(f'******x1: {x1.shape}')
         x1 = self.conv3(x1)
-        x1 = torch.clamp_(x1, 0.0, 1.0)
+        x1 = (torch.tanh(x1) + 1) / 2
         
         return x1
 
@@ -155,5 +155,5 @@ class SRGAN_DISC(nn.Module):
         return x1
         
         
-        
+
         
