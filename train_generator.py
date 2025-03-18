@@ -14,7 +14,7 @@ from data import UcsrTrainValidDataset
 
 if __name__ == "__main__":
     # 데이터 가져오기
-    train_valid = UcsrTrainValidDataset(train_config['train_lr_path'], train_config['train_hr_path'])
+    train_valid = UcsrTrainValidDataset(train_config['train_data_path'])
     train_data = train_valid.get_train()
     valid_data = train_valid.get_valid()
     
@@ -26,6 +26,9 @@ if __name__ == "__main__":
     optimizer = optim.Adam(model.parameters(), lr=train_config['learning_rate'])
     criterion = ContentLossMSE().to(train_config['device'])
     num_epochs = train_config['num_epochs_srresnet']
+    
+    # model.load_state_dict(torch.load("/home/lab/work/SRGAN/SRResnet_parameters/srresnet_epoch653_psnr17.54370880543264.pt", map_location=torch.device('cpu')))
+    # model = model.to(train_config['device'])
 
     
     best_val_psnr = 0

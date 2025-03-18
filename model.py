@@ -29,10 +29,24 @@ class SRGAN_GEN(nn.Module):
         self.conv1 = nn.Conv2d(in_channels=3, out_channels=64, kernel_size=9, stride=1, padding=4)
         self.prelu1 = nn.PReLU()
         
-        self.num_of_resblocks = train_config['num_of_res_blocks'] # 논문대로
-        self.residual_blocks = nn.ModuleList([
-            ResidualBlock(64, 64, 3, 1) for _ in range(self.num_of_resblocks)
-        ])
+        self.residual_blocks = nn.Sequential(
+            ResidualBlock(64, 64, 3, 1),
+            ResidualBlock(64, 64, 3, 1),
+            ResidualBlock(64, 64, 3, 1),
+            ResidualBlock(64, 64, 3, 1),
+            ResidualBlock(64, 64, 3, 1),
+            ResidualBlock(64, 64, 3, 1),
+            ResidualBlock(64, 64, 3, 1),
+            ResidualBlock(64, 64, 3, 1),
+            ResidualBlock(64, 64, 3, 1),
+            ResidualBlock(64, 64, 3, 1),
+            ResidualBlock(64, 64, 3, 1),
+            ResidualBlock(64, 64, 3, 1),
+            ResidualBlock(64, 64, 3, 1),
+            ResidualBlock(64, 64, 3, 1),
+            ResidualBlock(64, 64, 3, 1),
+            ResidualBlock(64, 64, 3, 1)
+        )
         
         self.conv2 = nn.Conv2d(in_channels=64, out_channels=64, kernel_size=3, stride=1, padding=1)
         self.batch_norm = nn.BatchNorm2d(num_features=64) # batch norm한 다음에 skip-connection해야됨  
@@ -54,25 +68,24 @@ class SRGAN_GEN(nn.Module):
         
     def forward(self, x0):
         # print(f'******x0: {x0.shape}')
-        x0 = self.conv1(x0)
-        x0 = self.prelu1(x0)
+        x1 = self.conv1(x0)
+        x1 = self.prelu1(x1)
         
-        for layer in self.residual_blocks:
-            x1 = layer(x0) 
+        x2 = self.residual_blocks(x1)
         
-        x1 = self.conv2(x1)
-        x1 = self.batch_norm(x1)
-        x1 += x0
+        x2 = self.conv2(x2)
+        x2 = self.batch_norm(x2)
+        x2 += x1
         # print(f'******x1: {x1.shape}')
         
-        x1 = self.upsample_block1(x1)
-        x1 = self.upsample_block2(x1)
+        x2 = self.upsample_block1(x2)
+        x2 = self.upsample_block2(x2)
         
         # print(f'******x1: {x1.shape}')
-        x1 = self.conv3(x1)
-        x1 = (torch.tanh(x1) + 1) / 2
+        x2 = self.conv3(x2)
+        x2 = torch.clamp(x2, 0.0, 1.0)
         
-        return x1
+        return x2
 
 class SRGAN_DISC(nn.Module):
     def __init__(self):

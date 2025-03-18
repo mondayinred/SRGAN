@@ -10,6 +10,7 @@ train_config = {
     'learning_rate' : 0.0001,
     'saving_epoch_period' : 50,
     'num_of_res_blocks' : 16,
+    'downsampling_factor' : 4,
     'device' : torch.device("cuda" if torch.cuda.is_available() else "cpu"),
     
     # 'preprocess_hr' : transforms.Compose([
@@ -19,8 +20,7 @@ train_config = {
     #     transforms.Resize((input_config['input_size'][0] / input_config['sampling_factor'],  input_config['input_size'][1] / input_config['sampling_factor'])), # sampling_factor만큼 downsampling
     # ]),
     
-    'train_lr_path' : "/home/lab/Datasets/SRGAN_data/Train/LR",
-    'train_hr_path' : "/home/lab/Datasets/SRGAN_data/Train/HR",
+    'train_data_path' : "/home/lab/Datasets/UCSR_Datasets/Train/LR_HIFI/high",
     'train_ratio' : 0.8,
     'crop_size' : (96, 96),
     'srresnet_save_path' : '/home/lab/work/SRGAN/SRResnet_parameters',
