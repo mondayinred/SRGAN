@@ -5,8 +5,9 @@ from config import train_config
 
 # 이미지 로드
 image_src_path = '/home/lab/Datasets/UCSR_Datasets/Train/HR'
-image_save_path = '/home/lab/Datasets/SRGAN_data/Train_patches'
+image_save_path = '/home/lab/Datasets/SRGAN_data/Train_patches4/'
 patch_size = train_config['crop_size']
+stride = int(train_config['crop_size'][0] / 4)  # stride 값 설정
 
 patch_idx = 1  # 패치 번호
 for f in os.listdir(image_src_path):
@@ -17,12 +18,10 @@ for f in os.listdir(image_src_path):
     width, height = image.size
     patch_w, patch_h = patch_size
 
-    for y in range(0, height, patch_h):
-        for x in range(0, width, patch_w):
-            # 현재 패치 영역이 이미지 범위를 넘어가지 않도록 함
-            if x + patch_w <= width and y + patch_h <= height:
-                patch = image.crop((x, y, x + patch_w, y + patch_h))
-                patch.save(os.path.join(image_save_path, f"patch_{patch_idx}.png"))
-                patch_idx += 1
+    for y in range(0, height - patch_h + 1, stride):
+        for x in range(0, width - patch_w + 1, stride):
+            patch = image.crop((x, y, x + patch_w, y + patch_h))
+            patch.save(os.path.join(image_save_path, f"patch_{patch_idx}.png"))
+            patch_idx += 1
 
     print(f"총 {patch_idx}개의 패치를 저장했습니다.")

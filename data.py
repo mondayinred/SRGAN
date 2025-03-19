@@ -16,20 +16,12 @@ import numpy as np
 from config import train_config
 
 class UcsrTrainValidDataset:
-    def __init__(self, data_path):
-        images_path_list = [os.path.join(data_path, f) for f in os.listdir(data_path)]
+    def __init__(self, train_path, valid_path):
+        train__images_path_list = [os.path.join(train_path, f) for f in os.listdir(train_path)]
+        valid_images_path_list = [os.path.join(valid_path, f) for f in os.listdir(valid_path)]
         
-        #### train, valid 나누기 ####
-        images_path_list.sort()
-        
-        split_idx = int(len(images_path_list) * train_config['train_ratio'])
-        
-        train_path_list = list(images_path_list[:split_idx])
-        valid_path_list = list(images_path_list[split_idx:])
-    
-        
-        self.train_data = UcsrTrainDataset(train_path_list)
-        self.valid_data = UcsrValidDataset(valid_path_list)
+        self.train_data = UcsrTrainDataset(train__images_path_list)
+        self.valid_data = UcsrValidDataset(valid_images_path_list)
         print(f'train length: {self.train_data.__len__()}, valid length:{self.valid_data.__len__()}')
     
     def get_train(self):
@@ -46,9 +38,6 @@ class UcsrTrainDataset(Dataset):
         return len(self.train_path_list)
     
     def __getitem__(self, idx):
-        transform_to_hr = transforms.Compose([
-            transforms.RandomCrop(train_config['crop_size']),
-        ])
         transform_to_lr = transforms.Compose([
             transforms.Resize(
                 (train_config['crop_size'][0] // train_config['downsampling_factor'], 
@@ -56,8 +45,7 @@ class UcsrTrainDataset(Dataset):
                 interpolation=transforms.InterpolationMode.BICUBIC
                 )  
         ])
-        image = Image.open(self.train_path_list[idx]).convert("RGB")
-        hr_image = transform_to_hr(image)
+        hr_image = Image.open(self.train_path_list[idx]).convert("RGB")
         lr_image = transform_to_lr(hr_image)
         hr_tensor = torch.as_tensor(np.array(hr_image) / 255.0, dtype=torch.float32).permute(2, 0, 1) #### 억까 심하네.. transforms.ToTensor()대신 쓰기
         lr_tensor = torch.as_tensor(np.array(lr_image) / 255.0, dtype=torch.float32).permute(2, 0, 1) 
@@ -73,21 +61,18 @@ class UcsrValidDataset(Dataset):
         return len(self.valid_path_list)
     
     def __getitem__(self, idx):
-        transform_to_hr = transforms.Compose([
-            transforms.RandomCrop(train_config['crop_size']),
-        ])
+        hr_image = Image.open(self.valid_path_list[idx]).convert("RGB")
         transform_to_lr = transforms.Compose([
-            transforms.Resize(
-                (train_config['crop_size'][0] // train_config['downsampling_factor'], 
-                train_config['crop_size'][1] // train_config['downsampling_factor']), 
+            transforms.Resize((
+                hr_image.size[1] // train_config['downsampling_factor'], 
+                hr_image.size[0] // train_config['downsampling_factor']), 
                 interpolation=transforms.InterpolationMode.BICUBIC
                 )  
         ])
-        image = Image.open(self.valid_path_list[idx]).convert("RGB")
-        hr_image = transform_to_hr(image)
         lr_image = transform_to_lr(hr_image)
         hr_tensor = torch.as_tensor(np.array(hr_image) / 255.0, dtype=torch.float32).permute(2, 0, 1) #### 억까 심하네.. transforms.ToTensor()대신 쓰기
         lr_tensor = torch.as_tensor(np.array(lr_image) / 255.0, dtype=torch.float32).permute(2, 0, 1) 
         # print(f'***{lr_tensor.shape, hr_tensor.shape}')
         
         return lr_tensor, hr_tensor
+    

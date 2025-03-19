@@ -5,7 +5,7 @@ import torch
 
 train_config = {
     'num_epochs'  : 100,
-    'num_epochs_srresnet' : 10000,
+    'num_epochs_srresnet' : 1,
     'batch_size' : 16,
     'learning_rate' : 0.0001,
     'saving_epoch_period' : 50,
@@ -20,9 +20,11 @@ train_config = {
     #     transforms.Resize((input_config['input_size'][0] / input_config['sampling_factor'],  input_config['input_size'][1] / input_config['sampling_factor'])), # sampling_factor만큼 downsampling
     # ]),
     
-    'train_data_path' : "/home/lab/Datasets/UCSR_Datasets/Train/HR",
-    'train_ratio' : 0.8,
-    'crop_size' : (96, 96),
+    'train_data_path' : "/home/lab/Datasets/SRGAN_data/Train_patches2",
+    'valid_data_path' : "/home/lab/Datasets/SRGAN_data/Test/Set14",
+    'train_ratio' : 0.9,
+    'crop_size' : (896, 896),
+    'valid_crop_size' : (96, 96),
     'srresnet_save_path' : '/home/lab/work/SRGAN/SRResnet_parameters',
     'model_save_path' : '/home/lab/work/SRGAN/model_parameters'
 }
